@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบเก็บข้อมูลการรับยาคืนจากผู้ป่วย - รพ.ร้องกวาง</title>
+  
+  <!-- Google Fonts: Sarabun & Prompt -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            hospital: {
+              50: '#f0fdfa',
+              100: '#ccfbf1',
+              500: '#14b8a6',
+              600: '#0d9488',
+              700: '#0f766e',
+              800: '#115e59',
+              900: '#134e4a',
+            }
+          },
+          fontFamily: {
+            sans: ['Sarabun', 'sans-serif'],
+            heading: ['Prompt', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- SheetJS (xlsx) for Excel Import & Export -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  
+  <!-- Chart.js for Data Visualizations -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="public/css/styles.css">
+</head>
+<body class="bg-slate-50/60 text-slate-800 min-h-screen flex flex-col font-sans antialiased">
+
+  <!-- ================================================================= -->
+  <!-- TOP HEADER & BRANDING -->
+  <!-- ================================================================= -->
+  <header class="bg-white border-b border-slate-200/80 shadow-sm sticky top-0 z-30">
+    
+    <!-- Top Branding Row -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3.5">
+        <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-700 text-white flex items-center justify-center text-2xl shadow-md shadow-teal-500/20">
+          💊
+        </div>
+        <div>
+          <h1 class="text-lg md:text-xl font-bold text-slate-900 heading-font tracking-tight flex items-center gap-2">
+            <span>ระบบเก็บข้อมูลการรับยาคืนจากผู้ป่วย</span>
+            <span class="text-[11px] px-2.5 py-0.5 rounded-full bg-teal-50 text-teal-800 border border-teal-200 font-medium">รพ.ร้องกวาง</span>
+          </h1>
+          <p class="text-xs text-slate-500 font-medium mt-0.5">
+            ฝ่ายเภสัชกรรมและคุ้มครองผู้บริโภค โรงพยาบาลร้องกวาง
+          </p>
+        </div>
+      </div>
+
+      <!-- Creator & Attribution (Strictly NO phone numbers) -->
+      <div class="flex items-center gap-3">
+        <div class="px-3.5 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-right">
+          <div class="text-[10px] text-slate-400 font-medium uppercase tracking-wider">ผู้พัฒนาระบบ</div>
+          <div class="text-xs font-bold text-teal-800">Created by Pattaraporn Wongjak</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =============================================================== -->
+    <!-- TOP NAVIGATION MENU (เมนูทั้งหมดอยู่ด้านบนตามข้อกำหนด) -->
+    <!-- =============================================================== -->
+    <div class="bg-slate-50/90 border-t border-slate-200/70 backdrop-blur-sm">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center gap-1.5 py-2 overflow-x-auto">
+        
+        <a href="#" data-view="dashboard" class="nav-item nav-item-active flex items-center gap-2 px-4 py-2 rounded-xl text-xs md:text-sm font-semibold transition-all whitespace-nowrap">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+          <span>แดชบอร์ด</span>
+        </a>
+
+        <a href="#" data-view="return-form" class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-xs md:text-sm font-medium text-slate-600 hover:text-teal-800 hover:bg-slate-200/60 transition-all whitespace-nowrap">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+          <span>บันทึกการรับยาคืน</span>
+        </a>
+
+        <a href="#" data-view="reports" class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-xs md:text-sm font-medium text-slate-600 hover:text-teal-800 hover:bg-slate-200/60 transition-all whitespace-nowrap">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <span>รายงานข้อมูล</span>
+        </a>
+
+        <div class="h-5 w-px bg-slate-300 mx-1"></div>
+
+        <a href="#" data-view="medicines" class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-xs md:text-sm font-medium text-slate-600 hover:text-teal-800 hover:bg-slate-200/60 transition-all whitespace-nowrap">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg>
+          <span>จัดการรายการยา</span>
+        </a>
+
+        <a href="#" data-view="import" class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-xs md:text-sm font-medium text-slate-600 hover:text-teal-800 hover:bg-slate-200/60 transition-all whitespace-nowrap">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <span>Import รายการยา</span>
+        </a>
+
+        <a href="#" data-view="export" class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-xs md:text-sm font-medium text-slate-600 hover:text-teal-800 hover:bg-slate-200/60 transition-all whitespace-nowrap">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span>Export Excel</span>
+        </a>
+
+        <div class="h-5 w-px bg-slate-300 mx-1"></div>
+
+        <a href="#" data-view="tests" class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-xs md:text-sm font-medium text-slate-600 hover:text-teal-800 hover:bg-slate-200/60 transition-all whitespace-nowrap">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          <span>12 Test Cases</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================================================================= -->
+  <!-- MAIN FULL-WIDTH CONTAINER -->
+  <!-- ================================================================= -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- Zero Data Banner (Shown when no medicines exist yet) -->
+    <div id="zero-data-banner" class="hidden hospital-card p-4 bg-gradient-to-r from-teal-50 to-emerald-50 border-teal-200 mb-6 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-teal-600 text-white flex items-center justify-center text-lg">💡</div>
+        <div>
+          <div class="text-xs font-bold text-teal-900">ระบบเริ่มต้นด้วยข้อมูลว่าง (ข้อมูลเบื้องต้นเป็นศูนย์)</div>
+          <div class="text-xs text-teal-700">สามารถเริ่มต้นใช้งานโดยนำเข้ารายการยาผ่านไฟล์ Excel/CSV หรือกดปุ่มเพิ่มยาใหม่</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="App.navigate('import')" class="px-3 py-1.5 rounded-lg bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold transition-all shadow-sm">
+          📥 นำเข้าไฟล์ Excel/CSV
+        </button>
+        <button onclick="App.openAddMedicineModal()" class="px-3 py-1.5 rounded-lg bg-white border border-teal-300 text-teal-800 hover:bg-teal-50 text-xs font-bold transition-all">
+          + เพิ่มยาด้วยตนเอง
+        </button>
+      </div>
+    </div>
+
+    <!-- ============================================================= -->
+    <!-- VIEW 1: DASHBOARD -->
+    <!-- ============================================================= -->
+    <section id="view-dashboard" class="view-section space-y-6">
+      
+      <!-- Filter Bar -->
+      <div class="hospital-card p-4 bg-white">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          
+          <!-- Presets -->
+          <div class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl text-xs font-semibold text-slate-600">
+            <button data-preset="today" class="btn-preset px-3 py-1.5 rounded-lg transition-all bg-white text-slate-700">วันนี้</button>
+            <button data-preset="7days" class="btn-preset px-3 py-1.5 rounded-lg transition-all bg-white text-slate-700">7 วันล่าสุด</button>
+            <button data-preset="month" class="btn-preset px-3 py-1.5 rounded-lg transition-all bg-teal-700 text-white shadow-sm">เดือนนี้</button>
+            <button data-preset="year" class="btn-preset px-3 py-1.5 rounded-lg transition-all bg-white text-slate-700">ปีนี้ (2569)</button>
+            <button data-preset="all" class="btn-preset px-3 py-1.5 rounded-lg transition-all bg-white text-slate-700">ทั้งหมด</button>
+          </div>
+
+          <!-- Custom Date Range & Source -->
+          <div class="flex flex-wrap items-center gap-3 text-sm">
+            <div class="flex items-center gap-1.5">
+              <span class="text-xs text-slate-500 font-medium">ตั้งแต่วันที่:</span>
+              <input type="date" id="dash-start-date" class="border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-teal-500 focus:outline-none">
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="text-xs text-slate-500 font-medium">ถึงวันที่:</span>
+              <input type="date" id="dash-end-date" class="border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-teal-500 focus:outline-none">
+            </div>
+
+            <!-- Source Filter (Strictly 3 options: OPD, IPD, กล่องยาคืนทั่วไป) -->
+            <div class="flex items-center gap-1.5">
+              <span class="text-xs text-slate-500 font-medium">แหล่งที่มา:</span>
+              <select id="dash-source-select" class="border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-teal-500 focus:outline-none bg-white">
+                <option value="ทั้งหมด">ทั้งหมด (ทุกแหล่งที่มา)</option>
+                <option value="OPD">OPD (ผู้ป่วยนอก)</option>
+                <option value="IPD">IPD (ผู้ป่วยใน)</option>
+                <option value="กล่องยาคืนทั่วไป">กล่องยาคืนทั่วไป</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPI Cards Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        <!-- KPI 1: มูลค่ายาคืนทั้งหมด -->
+        <div class="hospital-card p-5 bg-gradient-to-br from-teal-600 to-teal-800 text-white">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold uppercase tracking-wider text-teal-100">มูลค่ายาคืนทั้งหมด</span>
+            <div class="w-8 h-8 rounded-lg bg-teal-500/40 flex items-center justify-center text-white">💰</div>
+          </div>
+          <div id="kpi-total-value" class="text-2xl font-extrabold mt-3 heading-font tracking-tight">0.00 บาท</div>
+          <div class="text-[11px] text-teal-200 mt-1 font-medium">คำนวณตามสูตร: จำนวน × ต้นทุน ณ วันบันทึก</div>
+        </div>
+
+        <!-- KPI 2: จำนวนหน่วยยาที่รับคืน -->
+        <div class="hospital-card p-5 bg-white border border-slate-200">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">จำนวนหน่วยยาที่รับคืน</span>
+            <div class="w-8 h-8 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center font-bold">📦</div>
+          </div>
+          <div id="kpi-total-units" class="text-2xl font-extrabold text-slate-900 mt-3 heading-font">0 หน่วย</div>
+          <div class="text-[11px] text-slate-400 mt-1 font-medium">รวมเม็ด, แคปซูล, หลอด, ขวด ฯลฯ</div>
+        </div>
+
+        <!-- KPI 3: จำนวนชนิดยาที่รับคืน -->
+        <div class="hospital-card p-5 bg-white border border-slate-200">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">จำนวนชนิดยาที่รับคืน</span>
+            <div class="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center font-bold">💊</div>
+          </div>
+          <div id="kpi-distinct-meds" class="text-2xl font-extrabold text-slate-900 mt-3 heading-font">0 รายการ</div>
+          <div class="text-[11px] text-slate-400 mt-1 font-medium">จำแนกตามรหัสยาที่รับคืน</div>
+        </div>
+
+        <!-- KPI 4: จำนวนครั้งที่บันทึก -->
+        <div class="hospital-card p-5 bg-white border border-slate-200">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">จำนวนครั้งที่บันทึกรับคืน</span>
+            <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center font-bold">📝</div>
+          </div>
+          <div id="kpi-total-tx" class="text-2xl font-extrabold text-slate-900 mt-3 heading-font">0 ครั้ง</div>
+          <div class="text-[11px] text-slate-400 mt-1 font-medium">จำนวนครั้งของการรับยาคืน</div>
+        </div>
+      </div>
+
+      <!-- Charts Row 1: Top 10 Horizontal Bar Chart -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 hospital-card p-5 bg-white">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div>
+              <h3 class="text-base font-bold text-slate-900 heading-font flex items-center gap-2">
+                <span>📊 10 อันดับยาที่มีมูลค่าการรับคืนสูงสุด</span>
+              </h3>
+              <p class="text-xs text-slate-500">เรียงลำดับจากมูลค่าการรับคืนรวมสูงสุด (คำนวณตามช่วงเวลาและแหล่งที่มาที่เลือก)</p>
+            </div>
+          </div>
+          <div class="h-80 mt-4 relative">
+            <canvas id="chart-top10"></canvas>
+          </div>
+        </div>
+
+        <!-- Top 10 Summary Table -->
+        <div class="hospital-card p-5 bg-white flex flex-col">
+          <h3 class="text-base font-bold text-slate-900 heading-font pb-2 border-b border-slate-100">
+            ตารางสรุป 10 อันดับแรก
+          </h3>
+          <div class="flex-1 overflow-y-auto mt-2">
+            <table class="w-full text-xs hospital-table">
+              <thead>
+                <tr>
+                  <th class="text-center w-16">อันดับ</th>
+                  <th>ชื่อยา</th>
+                  <th class="text-right">จำนวน</th>
+                  <th class="text-right">มูลค่า</th>
+                </tr>
+              </thead>
+              <tbody id="dash-top10-table-body">
+                <!-- Injected via app.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Row 2: Monthly Trend & Source Comparison -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Monthly Trend (2 cols) -->
+        <div class="lg:col-span-2 hospital-card p-5 bg-white">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div>
+              <h3 class="text-base font-bold text-slate-900 heading-font">
+                📈 แนวโน้มมูลค่าและจำนวนการรับยาคืนรายเดือน
+              </h3>
+              <p class="text-xs text-slate-500">
+                สถิติตลอด 12 เดือนของ <span id="trend-year-label" class="font-semibold text-teal-700">ปี พ.ศ. 2569</span>
+              </p>
+            </div>
+          </div>
+          <div class="h-72 mt-4 relative">
+            <canvas id="chart-monthly-trend"></canvas>
+          </div>
+        </div>
+
+        <!-- Source Breakdown (1 col) -->
+        <div class="hospital-card p-5 bg-white">
+          <div class="pb-3 border-b border-slate-100">
+            <h3 class="text-base font-bold text-slate-900 heading-font">
+              🥧 สัดส่วนตามแหล่งที่มา
+            </h3>
+            <p class="text-xs text-slate-500">เปรียบเทียบมูลค่า: OPD vs IPD vs กล่องยาคืนทั่วไป</p>
+          </div>
+          <div class="h-60 mt-4 relative">
+            <canvas id="chart-source-dist"></canvas>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ============================================================= -->
+    <!-- VIEW 2: RETURN ENTRY FORM (บันทึกการรับยาคืน) -->
+    <!-- ============================================================= -->
+    <section id="view-return-form" class="view-section hidden space-y-6">
+      
+      <div class="hospital-card p-6 md:p-8 bg-white border-t-4 border-teal-600">
+        
+        <div class="border-b border-slate-200 pb-4 mb-6 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 class="text-xl font-bold text-slate-900 heading-font">บันทึกการรับยาคืนจากผู้ป่วย / แหล่งที่มา</h3>
+            <p class="text-xs text-slate-500">พิมพ์ค้นหารายการยา กรอกจำนวน ระบบจะคำนวณมูลค่าให้อัตโนมัติ</p>
+          </div>
+          <div class="text-xs text-teal-800 bg-teal-50 px-3 py-1.5 rounded-lg border border-teal-200 font-medium">
+            🔒 ปลอดภัยตามหลัก PDPA: ไม่เก็บชื่อผู้ป่วย เลขบัตรประชาชน หรือ HN
+          </div>
+        </div>
+
+        <!-- Section 1: ข้อมูลการรับคืน -->
+        <div class="bg-slate-50/80 p-5 rounded-2xl border border-slate-200 mb-6">
+          <h4 class="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full bg-teal-600 text-white text-xs flex items-center justify-center font-bold">1</span>
+            <span>ข้อมูลหลักของการรับคืน</span>
+          </h4>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            <!-- Date Picker -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1.5">
+                วันที่รับข้อมูล <span class="text-rose-500">*</span>
+              </label>
+              <input type="date" id="return-date-input"
+                class="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-medium focus:ring-2 focus:ring-teal-500 focus:outline-none bg-white">
+              <p id="return-date-thai-label" class="text-xs text-teal-700 font-semibold mt-1"></p>
+              <p class="text-[11px] text-slate-400">รองรับการบันทึกย้อนหลัง และใช้คำนวณสถิติรายวัน/เดือน/ปี</p>
+            </div>
+
+            <!-- Source Selector (Strictly 3 options: OPD, IPD, กล่องยาคืนทั่วไป) -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1.5">
+                แหล่งที่มาของยาคืน <span class="text-rose-500">* (3 ตัวเลือกเท่านั้น)</span>
+              </label>
+              <div class="grid grid-cols-3 gap-2.5">
+                <label class="flex items-center gap-2 p-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 cursor-pointer text-xs font-semibold transition-all">
+                  <input type="radio" name="return-source" value="OPD" checked class="text-teal-600 focus:ring-teal-500">
+                  <span>OPD</span>
+                </label>
+                <label class="flex items-center gap-2 p-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 cursor-pointer text-xs font-semibold transition-all">
+                  <input type="radio" name="return-source" value="IPD" class="text-teal-600 focus:ring-teal-500">
+                  <span>IPD</span>
+                </label>
+                <label class="flex items-center gap-2 p-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 cursor-pointer text-xs font-semibold transition-all">
+                  <input type="radio" name="return-source" value="กล่องยาคืนทั่วไป" class="text-teal-600 focus:ring-teal-500">
+                  <span>กล่องยาคืน</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: รายการยา (Multi-item Dynamic Table with Typeahead Search) -->
+        <div class="mb-6">
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-teal-600 text-white text-xs flex items-center justify-center font-bold">2</span>
+              <span>รายการยาที่รับคืน</span>
+            </h4>
+            <button type="button" onclick="App.addReturnItemRow()"
+              class="flex items-center gap-1.5 px-3.5 py-1.5 bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-300 rounded-xl text-xs font-bold transition-all">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+              <span>+ เพิ่มแถวรายการ</span>
+            </button>
+          </div>
+
+          <!-- Quick Medicine Search Bar -->
+          <div id="return-quick-search-container" class="relative mb-4">
+            <label class="block text-xs font-semibold text-teal-900 mb-1">
+              ⚡ ค้นหาและเพิ่มยาอย่างรวดเร็ว (พิมพ์ชื่อยา, รหัสยา หรือ generic name แล้วคลิกเลือก):
+            </label>
+            <div class="relative">
+              <input type="text" id="return-quick-search" autocomplete="off"
+                placeholder="🔍 พิมพ์ค้นหา เช่น paracetamol, amox, 001 หรือชื่อยาภาษาไทย/อังกฤษ แล้วคลิกเพื่อเพิ่มลงตารางทันที..."
+                class="w-full bg-teal-50/70 border-2 border-teal-400 rounded-xl px-4 py-2.5 pl-10 text-sm font-medium focus:ring-2 focus:ring-teal-600 focus:outline-none focus:bg-white shadow-sm transition-all"
+                oninput="App.onQuickSearchInput(this.value)"
+                onfocus="App.onQuickSearchFocus(this.value)">
+              <span class="absolute left-3.5 top-3 text-teal-600 font-bold">🔍</span>
+            </div>
+            <div id="quick-search-dropdown" class="search-dropdown-menu hidden"></div>
+          </div>
+
+          <!-- Items Table -->
+          <div class="border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+            <table class="w-full text-left hospital-table">
+              <thead>
+                <tr>
+                  <th class="w-12 text-center">#</th>
+                  <th>รายการยา / Generic Name / รูปแบบยา (พิมพ์ค้นหาได้ในช่อง)</th>
+                  <th class="w-32 text-right">จำนวน</th>
+                  <th class="w-36 text-right">ต้นทุน/หน่วย</th>
+                  <th class="w-40 text-right">มูลค่ารวม (บาท)</th>
+                  <th class="w-16 text-center">จัดการ</th>
+                </tr>
+              </thead>
+              <tbody id="return-items-table-body">
+                <!-- Rows injected via app.js -->
+              </tbody>
+            </table>
+          </div>
+
+          <p class="text-xs text-slate-500 mt-2 italic">
+            * มูลค่ารวมคำนวณอัตโนมัติแบบ Real-time ตามสูตร: <span class="font-semibold text-slate-700">จำนวน × ต้นทุนต่อหน่วย</span> (ต้นทุนดึงจากฐานข้อมูลยา ไม่อนุญาตให้แก้ไขในหน้านี้)
+          </p>
+        </div>
+
+        <!-- Section 3: Summary & Total -->
+        <div class="bg-gradient-to-r from-teal-50 to-emerald-50 border border-teal-200 rounded-2xl p-6 mb-6 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <div class="text-xs font-semibold text-teal-800 uppercase tracking-wider">มูลค่ารวมการรับคืนในครั้งนี้</div>
+            <div class="text-xs text-teal-700 mt-1 font-medium">
+              จำนวนชนิดยา: <span id="return-grand-count" class="font-bold text-teal-900">0 รายการ</span> |
+              จำนวนหน่วยยารวม: <span id="return-grand-qty" class="font-bold text-teal-900">0 หน่วย</span>
+            </div>
+          </div>
+          <div class="text-right">
+            <div class="text-xs text-slate-500 font-medium">มูลค่ารวมทั้งหมด</div>
+            <div id="return-grand-total" class="text-3xl md:text-4xl font-extrabold text-teal-800 heading-font">
+              0.00 บาท
+            </div>
+          </div>
+        </div>
+
+        <!-- Notes Field (Strictly non-personal) -->
+        <div class="mb-6">
+          <label class="block text-xs font-semibold text-slate-700 mb-1">
+            หมายเหตุเพิ่มเติม (ถ้ามี เช่น สภาพยา, กล่องบรรจุ):
+          </label>
+          <input type="text" id="return-note-input" placeholder="ระบุข้อมูลทางวิชาการ (ห้ามระบุชื่อหรือข้อมูลส่วนบุคคลของผู้ป่วย)"
+            class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-teal-500 focus:outline-none">
+        </div>
+
+        <!-- Form Actions -->
+        <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
+          <button type="button" onclick="App.resetReturnForm()"
+            class="px-5 py-2.5 rounded-xl border border-slate-300 text-slate-600 hover:bg-slate-100 text-sm font-semibold transition-colors">
+            ล้างข้อมูล
+          </button>
+          <button type="button" onclick="App.submitReturnForm()"
+            class="px-6 py-2.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            <span>บันทึกข้อมูลการรับยาคืน</span>
+          </button>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ============================================================= -->
+    <!-- VIEW 3: REPORTS (รายงานข้อมูล) -->
+    <!-- ============================================================= -->
+    <section id="view-reports" class="view-section hidden space-y-6">
+      
+      <div class="hospital-card p-6 md:p-8 bg-white">
+        
+        <!-- Header & Controls -->
+        <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-200">
+          <div>
+            <h3 id="report-title-display" class="text-xl font-bold text-slate-900 heading-font">
+              รายงานข้อมูลการรับยาคืน
+            </h3>
+            <p class="text-xs text-slate-500">ตรวจสอบรายการรับยาคืน ยอดรวมรายวัน รายสัปดาห์ รายเดือน และรายปี</p>
+          </div>
+
+          <!-- Export to Excel Button -->
+          <button onclick="App.exportCurrentReportToExcel()"
+            class="flex items-center gap-2 px-4 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold shadow-sm transition-all">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span>Export Excel หน้านี้</span>
+          </button>
+        </div>
+
+        <!-- Report Mode Tabs & Filters -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 py-4 items-center">
+          
+          <!-- Mode Tabs (Daily, Weekly, Monthly, Yearly) -->
+          <div class="lg:col-span-5 flex items-center gap-1 bg-slate-100 p-1.5 rounded-xl text-xs font-semibold">
+            <button onclick="App.setReportMode('daily')" data-mode="daily" class="btn-report-tab flex-1 py-2 rounded-lg bg-teal-700 text-white shadow-sm transition-all text-center">รายวัน</button>
+            <button onclick="App.setReportMode('weekly')" data-mode="weekly" class="btn-report-tab flex-1 py-2 rounded-lg bg-white text-slate-700 transition-all text-center">รายสัปดาห์</button>
+            <button onclick="App.setReportMode('monthly')" data-mode="monthly" class="btn-report-tab flex-1 py-2 rounded-lg bg-white text-slate-700 transition-all text-center">รายเดือน</button>
+            <button onclick="App.setReportMode('yearly')" data-mode="yearly" class="btn-report-tab flex-1 py-2 rounded-lg bg-white text-slate-700 transition-all text-center">รายปี</button>
+          </div>
+
+          <!-- Dynamic Date Selectors -->
+          <div class="lg:col-span-7 flex flex-wrap items-center justify-end gap-3 text-xs">
+            
+            <!-- Daily / Weekly Date Picker -->
+            <div id="report-control-day" class="flex items-center gap-1.5">
+              <span class="font-medium text-slate-500">เลือกวันที่:</span>
+              <input type="date" id="report-date-input" class="border border-slate-300 rounded-lg px-2.5 py-1.5 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-teal-500">
+            </div>
+
+            <!-- Monthly: Month Selector -->
+            <div id="report-control-month" class="hidden flex items-center gap-1.5">
+              <span class="font-medium text-slate-500">เดือน:</span>
+              <select id="report-month-select" class="border border-slate-300 rounded-lg px-2 py-1.5 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-teal-500">
+                <option value="1">มกราคม</option>
+                <option value="2">กุมภาพันธ์</option>
+                <option value="3">มีนาคม</option>
+                <option value="4">เมษายน</option>
+                <option value="5">พฤษภาคม</option>
+                <option value="6">มิถุนายน</option>
+                <option value="7">กรกฎาคม</option>
+                <option value="8">สิงหาคม</option>
+                <option value="9">กันยายน</option>
+                <option value="10">ตุลาคม</option>
+                <option value="11">พฤศจิกายน</option>
+                <option value="12">ธันวาคม</option>
+              </select>
+            </div>
+
+            <!-- Monthly & Yearly: Year Selector -->
+            <div id="report-control-year" class="hidden flex items-center gap-1.5">
+              <span class="font-medium text-slate-500">ปี:</span>
+              <select id="report-year-select" class="border border-slate-300 rounded-lg px-2 py-1.5 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-teal-500">
+                <option value="2026">2569 (2026)</option>
+                <option value="2025">2568 (2025)</option>
+                <option value="2024">2567 (2024)</option>
+              </select>
+            </div>
+
+            <!-- Source Filter -->
+            <div class="flex items-center gap-1.5">
+              <span class="font-medium text-slate-500">แหล่งที่มา:</span>
+              <select id="report-source-select" class="border border-slate-300 rounded-lg px-2 py-1.5 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-teal-500">
+                <option value="ทั้งหมด">ทั้งหมด</option>
+                <option value="OPD">OPD</option>
+                <option value="IPD">IPD</option>
+                <option value="กล่องยาคืนทั่วไป">กล่องยาคืนทั่วไป</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Search & Sort Row -->
+        <div class="flex flex-wrap items-center justify-between gap-3 pt-2 pb-4">
+          <div class="w-72">
+            <input type="text" id="report-search-input" placeholder="🔍 ค้นหาชื่อยา, รหัสยา, generic..."
+              class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-teal-500 focus:outline-none">
+          </div>
+
+          <div class="flex items-center gap-2 text-xs">
+            <span class="text-slate-500 font-medium">เรียงตาม:</span>
+            <select id="report-sort-select" class="border border-slate-300 rounded-xl px-3 py-2 bg-white text-xs font-medium focus:outline-none focus:ring-2 focus:ring-teal-500">
+              <option value="date-desc">วันที่ (ล่าสุด → เก่าสุด)</option>
+              <option value="date-asc">วันที่ (เก่าสุด → ล่าสุด)</option>
+              <option value="value-desc">มูลค่า (มาก → น้อย)</option>
+              <option value="value-asc">มูลค่า (น้อย → มาก)</option>
+              <option value="quantity-desc">จำนวน (มาก → น้อย)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Items Table Container (Daily, Weekly, Monthly) -->
+        <div id="report-items-container" class="border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+          <table class="w-full text-left hospital-table">
+            <thead>
+              <tr>
+                <th class="w-12 text-center">#</th>
+                <th class="w-28">วันที่ (พ.ศ.)</th>
+                <th class="w-28">แหล่งที่มา</th>
+                <th>รายการยา / รายละเอียด</th>
+                <th class="w-24 text-right">จำนวน</th>
+                <th class="w-28 text-right">ต้นทุน/หน่วย</th>
+                <th class="w-36 text-right">มูลค่ารวม</th>
+                <th class="w-28 text-center">จัดการ</th>
+              </tr>
+            </thead>
+            <tbody id="report-items-table-body">
+              <!-- Injected via app.js -->
+            </tbody>
+          </table>
+
+          <!-- Table Footer Grand Total -->
+          <div class="bg-slate-100 px-6 py-4 border-t border-slate-200 flex flex-wrap items-center justify-between font-bold text-sm">
+            <div class="text-slate-600">
+              รวมทั้งหมด: <span id="report-total-count" class="text-teal-800">0 รายการ</span> |
+              จำนวนหน่วย: <span id="report-total-units" class="text-teal-800">0 หน่วย</span>
+            </div>
+            <div class="text-right">
+              <span class="text-slate-600 mr-2">มูลค่ารวมประจำงวด:</span>
+              <span id="report-total-value" class="text-xl text-teal-800 heading-font">0.00 บาท</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Yearly 12-Month Summary Table Container (Shown only in Yearly mode) -->
+        <div id="report-yearly-container" class="hidden border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+          <table class="w-full text-left hospital-table">
+            <thead>
+              <tr>
+                <th class="w-16 text-center">เดือนที่</th>
+                <th>เดือน</th>
+                <th class="w-48 text-right">จำนวนยาคืนรวม</th>
+                <th class="w-56 text-right">มูลค่ารวม (บาท)</th>
+                <th class="w-32 text-center">ดูรายละเอียด</th>
+              </tr>
+            </thead>
+            <tbody id="report-yearly-table-body">
+              <!-- Injected via app.js -->
+            </tbody>
+          </table>
+
+          <!-- Table Footer Grand Total Yearly -->
+          <div class="bg-slate-100 px-6 py-4 border-t border-slate-200 flex items-center justify-between font-bold text-sm">
+            <div class="text-slate-600">
+              จำนวนหน่วยยารับคืนทั้งปี: <span id="report-yearly-total-units" class="text-teal-800">0 หน่วย</span>
+            </div>
+            <div class="text-right">
+              <span class="text-slate-600 mr-2">มูลค่ารวมประจำปี:</span>
+              <span id="report-yearly-total-value" class="text-2xl text-teal-800 heading-font">0.00 บาท</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ============================================================= -->
+    <!-- VIEW 4: MEDICINES MANAGEMENT (จัดการรายการยา) -->
+    <!-- ============================================================= -->
+    <section id="view-medicines" class="view-section hidden space-y-6">
+      
+      <div class="hospital-card p-6 md:p-8 bg-white">
+        
+        <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-200">
+          <div>
+            <h3 class="text-xl font-bold text-slate-900 heading-font flex items-center gap-2">
+              <span>จัดการฐานข้อมูลรายการยา</span>
+              <span id="med-count-badge" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-teal-100 text-teal-800">0 รายการ</span>
+            </h3>
+            <p class="text-xs text-slate-500">ค้นหา เพิ่ม แก้ไข และเปิด/ปิดใช้งานรายการยาโรงพยาบาล (ข้อมูลเริ่มต้นเป็นศูนย์ตามความต้องการ)</p>
+          </div>
+
+          <div class="flex items-center gap-2.5">
+            <button onclick="App.navigate('import')" class="px-3.5 py-2 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50 text-xs font-semibold flex items-center gap-1.5 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <span>Import Excel/CSV</span>
+            </button>
+            <button onclick="App.openAddMedicineModal()" class="px-4 py-2 bg-teal-700 hover:bg-teal-800 text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center gap-1.5">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+              <span>+ เพิ่มรายการยาใหม่</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Filters Row -->
+        <div class="flex flex-wrap items-center justify-between gap-3 py-4">
+          <div class="w-80">
+            <input type="text" id="med-search-input" oninput="App.renderMedicinesManagement()" placeholder="🔍 ค้นหารหัสยา, ชื่อยา หรือ generic name..."
+              class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-teal-500 focus:outline-none">
+          </div>
+
+          <div class="flex items-center gap-2 text-xs">
+            <span class="text-slate-500 font-medium">สถานะ:</span>
+            <select id="med-status-filter" onchange="App.renderMedicinesManagement()" class="border border-slate-300 rounded-xl px-3 py-2 bg-white text-xs font-medium focus:outline-none focus:ring-2 focus:ring-teal-500">
+              <option value="all">ทั้งหมด</option>
+              <option value="Active">เปิดใช้งาน (Active)</option>
+              <option value="Inactive">ปิดใช้งาน (Inactive)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Medicines Table -->
+        <div class="border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+          <table class="w-full text-left hospital-table">
+            <thead>
+              <tr>
+                <th class="w-24">รหัสยา</th>
+                <th>ชื่อยา (Trade Name)</th>
+                <th>Generic Name</th>
+                <th class="w-32">Dosage Form</th>
+                <th class="w-32 text-right">ต้นทุนต่อหน่วย</th>
+                <th class="w-36 text-center">สถานะ</th>
+                <th class="w-28 text-center">จัดการ</th>
+              </tr>
+            </thead>
+            <tbody id="medicines-table-body">
+              <!-- Injected via app.js -->
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ============================================================= -->
+    <!-- VIEW 5: IMPORT MEDICINES (นำเข้ารายการยา) -->
+    <!-- ============================================================= -->
+    <section id="view-import" class="view-section hidden space-y-6 max-w-4xl mx-auto">
+      
+      <div class="hospital-card p-6 md:p-8 bg-white">
+        
+        <div class="pb-4 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 class="text-xl font-bold text-slate-900 heading-font">นำเข้าข้อมูลรายการยา (Import Excel / CSV)</h3>
+            <p class="text-xs text-slate-500">อัปโหลดไฟล์รายการยาจากโรงพยาบาล โดยยึดรหัสยาและชื่อยาตามไฟล์ 100%</p>
+          </div>
+          <button onclick="ExcelService.downloadTemplate()" class="px-3.5 py-2 rounded-xl border border-teal-300 text-teal-800 bg-teal-50 hover:bg-teal-100 text-xs font-semibold transition-colors flex items-center gap-1.5">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span>ดาวน์โหลดไฟล์ตัวอย่าง (.xlsx)</span>
+          </button>
+        </div>
+
+        <!-- Drag and drop zone -->
+        <div id="import-empty-state" class="mt-6 border-2 border-dashed border-slate-300 rounded-3xl p-10 text-center hover:border-teal-500 transition-colors bg-slate-50/50">
+          <div class="w-16 h-16 rounded-3xl bg-teal-50 text-teal-700 flex items-center justify-center mx-auto mb-4 text-2xl shadow-sm">
+            📥
+          </div>
+          <h4 class="text-base font-bold text-slate-800 mb-1">เลือกไฟล์หรือลากไฟล์มาวางที่นี่</h4>
+          <p class="text-xs text-slate-500 mb-5">รองรับไฟล์ Excel (.xlsx) และ CSV (.csv)</p>
+          <label class="px-6 py-3 bg-teal-700 hover:bg-teal-800 text-white rounded-xl text-xs font-bold cursor-pointer shadow-md hover:shadow-lg transition-all inline-block">
+            <span>เลือกไฟล์จากเครื่องคอมพิวเตอร์</span>
+            <input type="file" id="import-file-input" accept=".xlsx, .xls, .csv" class="hidden">
+          </label>
+          <div class="mt-5 text-xs text-slate-500 font-medium">
+            คอลัมน์ในไฟล์: <span class="font-bold text-slate-700">รหัสยา, ชื่อยา, Generic name, Dosage form, ต้นทุนต่อหน่วย</span>
+          </div>
+        </div>
+
+        <!-- Preview Table Section -->
+        <div id="import-preview-container" class="hidden mt-6 space-y-4">
+          
+          <!-- Summary Stats -->
+          <div class="grid grid-cols-4 gap-3">
+            <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 text-center">
+              <div class="text-xs text-slate-500 font-medium">พบในไฟล์ทั้งหมด</div>
+              <div id="import-count-total" class="text-xl font-bold text-slate-800">0 รายการ</div>
+            </div>
+            <div class="p-3.5 bg-emerald-50 rounded-2xl border border-emerald-200 text-center">
+              <div class="text-xs text-emerald-700 font-medium">ข้อมูลถูกต้อง</div>
+              <div id="import-count-valid" class="text-xl font-bold text-emerald-800">0 รายการ</div>
+            </div>
+            <div class="p-3.5 bg-sky-50 rounded-2xl border border-sky-200 text-center">
+              <div class="text-xs text-sky-700 font-medium">มีรหัสเดิมในระบบ</div>
+              <div id="import-count-dup" class="text-xl font-bold text-sky-800">0 รายการ</div>
+            </div>
+            <div class="p-3.5 bg-rose-50 rounded-2xl border border-rose-200 text-center">
+              <div class="text-xs text-rose-700 font-medium">ข้อมูลไม่สมบูรณ์</div>
+              <div id="import-count-err" class="text-xl font-bold text-rose-800">0 รายการ</div>
+            </div>
+          </div>
+
+          <!-- Import Policy & Mode Selector -->
+          <div class="p-4 bg-teal-50/80 border border-teal-300 rounded-2xl space-y-2">
+            <div class="text-xs font-bold text-teal-900 flex items-center gap-1.5">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>
+              <span>นโยบายรักษารหัสยาและชื่อยาตามไฟล์ที่นำเข้า 100%:</span>
+            </div>
+            <p class="text-xs text-teal-800 font-medium">
+              ระบบจะใช้ <strong>รหัสยาและชื่อยาตามไฟล์ที่นำเข้าทั้งหมด</strong> โดยไม่มีการดัดแปลงหรือเปลี่ยนรหัสยาเด็ดขาด
+            </p>
+            <div class="pt-2 flex flex-wrap items-center gap-3 text-xs font-semibold text-slate-800">
+              <label class="flex items-center gap-2 cursor-pointer bg-white px-3.5 py-2 rounded-xl border border-teal-300 shadow-sm hover:bg-slate-50 transition-colors">
+                <input type="radio" name="import-mode" value="upsert" checked class="text-teal-600 focus:ring-teal-500">
+                <span>อัปเดตและเพิ่มใหม่ตามไฟล์ (Upsert) - รักษารหัสเดิม 100%</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer bg-white px-3.5 py-2 rounded-xl border border-teal-300 shadow-sm hover:bg-slate-50 transition-colors">
+                <input type="radio" name="import-mode" value="replace" class="text-teal-600 focus:ring-teal-500">
+                <span>แทนที่ฐานข้อมูลยาทั้งหมดด้วยไฟล์นี้ (Replace Catalog)</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Preview Table -->
+          <div class="border border-slate-200 rounded-2xl overflow-hidden shadow-sm max-h-96 overflow-y-auto">
+            <table class="w-full text-left hospital-table">
+              <thead>
+                <tr>
+                  <th class="w-12 text-center">แถว</th>
+                  <th class="w-28">รหัสยา</th>
+                  <th>ชื่อยา</th>
+                  <th>Generic Name</th>
+                  <th class="w-28">รูปแบบ</th>
+                  <th class="w-28 text-right">ต้นทุน/หน่วย</th>
+                  <th class="w-36 text-center">การตรวจสอบ</th>
+                </tr>
+              </thead>
+              <tbody id="import-preview-table-body">
+                <!-- Injected via app.js -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Import Action Buttons -->
+          <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
+            <button onclick="App.cancelImport()" class="px-4 py-2 rounded-xl border border-slate-300 text-slate-600 hover:bg-slate-50 text-xs font-semibold">
+              ยกเลิก
+            </button>
+            <button onclick="App.confirmImportMedicines()" class="px-5 py-2.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold shadow-sm transition-all flex items-center gap-1.5">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>ยืนยันนำเข้าข้อมูล</span>
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ============================================================= -->
+    <!-- VIEW 6: EXPORT EXCEL (ส่งออกข้อมูล) -->
+    <!-- ============================================================= -->
+    <section id="view-export" class="view-section hidden space-y-6 max-w-3xl mx-auto">
+      
+      <div class="hospital-card p-6 md:p-8 bg-white">
+        
+        <div class="pb-4 border-b border-slate-200">
+          <h3 class="text-xl font-bold text-slate-900 heading-font">ส่งออกข้อมูลเป็นไฟล์ Excel (.xlsx)</h3>
+          <p class="text-xs text-slate-500">กำหนดเงื่อนไขช่วงวันที่และแหล่งที่มาเพื่อดาวน์โหลดรายงานสรุปการรับยาคืน</p>
+        </div>
+
+        <div class="space-y-5 my-6">
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1.5">วันที่เริ่มต้น:</label>
+              <input type="date" id="export-start-date" onchange="App.updateExportSummaryPreview()"
+                class="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-teal-500 focus:outline-none">
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1.5">วันที่สิ้นสุด:</label>
+              <input type="date" id="export-end-date" onchange="App.updateExportSummaryPreview()"
+                class="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-teal-500 focus:outline-none">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1.5">แหล่งที่มาของยาคืน:</label>
+            <select id="export-source-select" onchange="App.updateExportSummaryPreview()"
+              class="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs font-medium focus:ring-2 focus:ring-teal-500 focus:outline-none bg-white">
+              <option value="ทั้งหมด">ทั้งหมด (OPD, IPD และ กล่องยาคืนทั่วไป)</option>
+              <option value="OPD">OPD (ผู้ป่วยนอก)</option>
+              <option value="IPD">IPD (ผู้ป่วยใน)</option>
+              <option value="กล่องยาคืนทั่วไป">กล่องยาคืนทั่วไป</option>
+            </select>
+          </div>
+
+          <!-- Preview Card -->
+          <div class="bg-teal-50/70 border border-teal-200 rounded-2xl p-5 flex items-center justify-between">
+            <div>
+              <div class="text-xs font-semibold text-teal-900">รายการที่ตรงกับเงื่อนไข</div>
+              <div id="export-preview-count" class="text-2xl font-bold text-teal-800 heading-font">0 รายการ</div>
+            </div>
+            <div class="text-right">
+              <div class="text-xs font-semibold text-teal-900">มูลค่ารวมโดยประมาณ</div>
+              <div id="export-preview-value" class="text-2xl font-bold text-teal-800 heading-font">0.00 บาท</div>
+            </div>
+          </div>
+
+          <!-- Headers Info -->
+          <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-xs text-slate-600 space-y-1.5">
+            <div class="font-bold text-slate-800">หัวตารางในไฟล์ Excel ที่จะได้รับ:</div>
+            <p>• ลำดับ, วันที่รับคืน (พ.ศ.), แหล่งที่มา, รหัสยา, รายการยา, Generic name, Dosage form, จำนวน, ต้นทุนต่อหน่วย (บาท), มูลค่ารวม (บาท) และแถวสรุปยอดรวม</p>
+          </div>
+
+        </div>
+
+        <div class="pt-4 border-t border-slate-200 flex justify-end">
+          <button onclick="App.triggerExcelDownload()" class="px-6 py-3 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span>ดาวน์โหลดไฟล์ Excel (.xlsx) ทันที</span>
+          </button>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ============================================================= -->
+    <!-- VIEW 7: 12 TEST CASES RUNNER (ตรวจสอบระบบ) -->
+    <!-- ============================================================= -->
+    <section id="view-tests" class="view-section hidden space-y-6 max-w-4xl mx-auto">
+      
+      <div class="hospital-card p-6 md:p-8 bg-white">
+        
+        <div class="pb-4 border-b border-slate-200 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h3 class="text-xl font-bold text-slate-900 heading-font flex items-center gap-2">
+              <span>🧪 ชุดทดสอบความถูกต้องของระบบ (12 Test Cases)</span>
+            </h3>
+            <p class="text-xs text-slate-500">ตรวจสอบฟังก์ชันทุกด้าน ทั้งการบันทึก การคำนวณ สูตรคูณ ยอดรวม Top 10 และ Snapshot Isolation</p>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button onclick="App.resetEntireDatabase()" class="px-3.5 py-2 rounded-xl border border-rose-200 text-rose-700 bg-rose-50 hover:bg-rose-100 text-xs font-semibold transition-colors">
+              คืนค่าฐานข้อมูลเป็นศูนย์ (Reset Zero)
+            </button>
+            <button id="btn-run-all-tests" onclick="App.runAllSystemTests()" class="px-5 py-2.5 bg-teal-700 hover:bg-teal-800 text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center gap-1.5">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              <span>เริ่มรันการทดสอบทั้งหมด (Run All)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Progress Header -->
+        <div class="mt-4 p-3.5 bg-slate-50 rounded-2xl border border-slate-200">
+          <div class="flex items-center justify-between text-xs mb-1.5">
+            <span id="test-progress-text" class="font-semibold text-slate-700">พร้อมดำเนินการทดสอบ</span>
+            <span class="text-slate-400">12 เกณฑ์การทดสอบมาตรฐาน</span>
+          </div>
+          <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+            <div id="test-progress-bar" class="bg-teal-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- Dynamic Test Results List -->
+        <div id="tests-results-container" class="mt-4 space-y-2.5">
+          <!-- Results injected via test-runner.js -->
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ================================================================= -->
+  <!-- MODALS -->
+  <!-- ================================================================= -->
+
+  <!-- Modal 1: Add / Edit Medicine -->
+  <div id="modal-medicine-form" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden backdrop-blur-sm">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 md:p-8 fade-in">
+      <div class="pb-3 border-b border-slate-200 flex items-center justify-between">
+        <h4 id="med-modal-title" class="text-base font-bold text-slate-900 heading-font">ข้อมูลรายการยา</h4>
+        <button onclick="App.closeMedicineModal()" class="text-slate-400 hover:text-slate-600 text-lg">✕</button>
+      </div>
+
+      <form onsubmit="event.preventDefault(); App.saveMedicineForm();" class="space-y-4 mt-4 text-xs">
+        <input type="hidden" id="med-modal-id">
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">รหัสยา <span class="text-rose-500">* (ห้ามซ้ำ)</span></label>
+          <input type="text" id="med-modal-code" required placeholder="เช่น 001, 1002"
+            class="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 font-mono font-bold focus:ring-2 focus:ring-teal-500 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">ชื่อยา (Trade Name) <span class="text-rose-500">*</span></label>
+          <input type="text" id="med-modal-name" required placeholder="เช่น Paracetamol 500 mg"
+            class="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 font-medium focus:ring-2 focus:ring-teal-500 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Generic Name</label>
+          <input type="text" id="med-modal-generic" placeholder="เช่น Paracetamol"
+            class="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 focus:ring-2 focus:ring-teal-500 focus:outline-none">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Dosage Form</label>
+            <input type="text" id="med-modal-dosage" placeholder="เช่น Tablet, Capsule, MDI"
+              class="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 focus:ring-2 focus:ring-teal-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">ต้นทุนต่อหน่วย (บาท) <span class="text-rose-500">*</span></label>
+            <input type="number" step="0.01" min="0" id="med-modal-cost" required placeholder="0.50"
+              class="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 font-bold text-right focus:ring-2 focus:ring-teal-500 focus:outline-none">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">สถานะ</label>
+          <select id="med-modal-status" class="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 bg-white font-medium focus:ring-2 focus:ring-teal-500 focus:outline-none">
+            <option value="Active">เปิดใช้งาน (Active)</option>
+            <option value="Inactive">ปิดใช้งาน (Inactive)</option>
+          </select>
+        </div>
+
+        <div class="pt-3 border-t border-slate-200 flex items-center justify-end gap-2">
+          <button type="button" onclick="App.closeMedicineModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-slate-600 hover:bg-slate-50 font-semibold">
+            ยกเลิก
+          </button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-bold shadow-sm">
+            บันทึกข้อมูล
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 2: Transaction Details Receipt -->
+  <div id="modal-tx-details" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden backdrop-blur-sm">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 md:p-8 fade-in">
+      <div class="pb-3 border-b border-slate-200 flex items-center justify-between">
+        <div>
+          <h4 class="text-base font-bold text-slate-900 heading-font flex items-center gap-2">
+            <span>รายละเอียดการรับยาคืน</span>
+            <span id="modal-tx-id" class="text-xs font-mono px-2 py-0.5 rounded bg-teal-100 text-teal-800 font-bold">#TX-00000</span>
+          </h4>
+          <p class="text-xs text-slate-500">โรงพยาบาลร้องกวาง ฝ่ายเภสัชกรรมและคุ้มครองผู้บริโภค</p>
+        </div>
+        <button onclick="App.closeTxModal()" class="text-slate-400 hover:text-slate-600 text-lg">✕</button>
+      </div>
+
+      <div class="py-3 text-xs space-y-1.5 bg-slate-50 p-3.5 rounded-2xl border border-slate-200 mt-3">
+        <div class="flex justify-between">
+          <span class="text-slate-500">วันที่รับคืน (พ.ศ.):</span>
+          <span id="modal-tx-date" class="font-bold text-slate-800">-</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-500">แหล่งที่มา:</span>
+          <span id="modal-tx-source" class="font-bold text-slate-800">-</span>
+        </div>
+      </div>
+
+      <!-- Items List -->
+      <div class="mt-3 border border-slate-200 rounded-2xl overflow-hidden max-h-60 overflow-y-auto">
+        <table class="w-full text-xs hospital-table">
+          <thead>
+            <tr>
+              <th class="w-8 text-center">#</th>
+              <th>รายการยา</th>
+              <th class="w-16 text-right">จำนวน</th>
+              <th class="w-20 text-right">ต้นทุน/หน่วย</th>
+              <th class="w-24 text-right">มูลค่า</th>
+            </tr>
+          </thead>
+          <tbody id="modal-tx-items-body">
+            <!-- Injected via app.js -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Total -->
+      <div class="mt-3 p-3.5 bg-teal-50 border border-teal-200 rounded-2xl flex items-center justify-between">
+        <span class="text-xs font-bold text-teal-900">มูลค่ารวมทั้งสิ้น:</span>
+        <span id="modal-tx-total" class="text-lg font-extrabold text-teal-800 heading-font">0.00 บาท</span>
+      </div>
+
+      <div class="pt-3 border-t border-slate-200 mt-4 flex justify-end">
+        <button onclick="App.closeTxModal()" class="px-5 py-2.5 bg-slate-800 text-white rounded-xl text-xs font-semibold hover:bg-slate-900">
+          ปิดหน้าต่าง
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Global Hospital Toast Notification -->
+  <div id="hospital-toast" class="hidden fixed bottom-6 right-6 z-50 bg-teal-800 text-white px-5 py-3 rounded-2xl shadow-xl text-sm font-semibold flex items-center gap-2 border border-teal-600">
+    <!-- Toast message injected via app.js -->
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- SCRIPTS -->
+  <!-- ================================================================= -->
+  <script src="public/js/thai-date.js"></script>
+  <script src="public/js/db.js"></script>
+  <script src="public/js/charts.js"></script>
+  <script src="public/js/excel-service.js"></script>
+  <script src="public/js/test-runner.js"></script>
+  <script src="public/js/app.js"></script>
+
+</body>
+</html>
