@@ -1,0 +1,11 @@
+รหัสยา,ชื่อยา,Generic name,Dosage form,ต้นทุนต่อหน่วย
+101,Aspirin 81 mg,Acetylsalicylic acid,Tablet,0.35
+102,Azithromycin 250 mg,Azithromycin,Capsule,15.00
+103,Cetirizine 10 mg,Cetirizine HCl,Tablet,0.45
+104,Dicloxacillin 500 mg,Dicloxacillin sodium,Capsule,2.50
+105,Fluconazole 200 mg,Fluconazole,Capsule,18.00
+106,Glibenclamide 5 mg,Glibenclamide,Tablet,0.30
+107,Hydrochlorothiazide 25 mg,Hydrochlorothiazide,Tablet,0.40
+108,Ibuprofen 400 mg,Ibuprofen,Tablet,0.85
+109,Lorazepam 0.5 mg,Lorazepam,Tablet,0.60
+110,Metronidazole 400 mg,Metronidazole,Tablet,1.10
